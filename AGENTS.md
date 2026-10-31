@@ -81,6 +81,9 @@ mockups/                     esboços antigos
   do texto), rodapé "‹ Voltar".
 - `TouchMenuBar` e `TouchMenuItem` são `local` em `touchmenu.lua`: o patch os alcança com
   `debug.getupvalue(TouchMenu.init / TouchMenu.updateItems)` e não faz nada se não achar.
+- **Rapidez:** o visual (separadores, rodapé) entra no primeiro `updateItems`, então o menu é montado uma vez só
+  ao abrir. As listas do menu do navegador são montadas 2 s depois dele abrir (`setUpdateItemTable`),
+  para o primeiro toque em "Menu" ser rápido.
 
 ## Fluxo de trabalho
 
@@ -125,6 +128,8 @@ mockups/                     esboços antigos
 - `conn:rowexec` do ljsqlite3 dá erro se vierem várias linhas: use `LIMIT 1`.
 - No emulador, um toque logo após re-render pode ser perdido (adicione `wait 1`). Toques "de limpeza"
   podem abrir livros se o aviso não aparecer mais: confira onde vai tocar.
+- A tela inicial é uma janela separada. O KOReader só fecha quando não sobra janela: por isso
+  `FileManager.onClose` ("Sair") fecha a tela inicial antes. Sem isso o Kindle parece travado ao sair.
 - Cores: use tons de cinza (`Blitbuffer.COLOR_*`). O emulador é colorido; o aparelho não.
 - Não deixe o refresh de e-ink pesado: atualize só regiões (`setDirty(widget, "ui", geom)`).
 

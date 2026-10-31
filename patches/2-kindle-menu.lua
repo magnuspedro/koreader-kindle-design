@@ -137,16 +137,20 @@ local CHEVRON_W = S(34)
 local orig_item_init = TouchMenuItem.init
 
 -- KOReader appends " ▸" to submenu names; the "›" on the right replaces it.
+local SUB_SUFFIX = " " .. require("ui/bidi").ltr("\u{25B8}")
+local SUB_SUFFIX_LEN = #SUB_SUFFIX
 for i = 1, 60 do
     local n, fn = debug.getupvalue(orig_item_init, i)
     if not n then break end
     if n == "getMenuText" then
         debug.setupvalue(orig_item_init, i, function(item)
             local t = fn(item)
-            if type(t) == "string" then
-                local suffix = " " .. require("ui/bidi").ltr("\u{25B8}")
-                if t:sub(-#suffix) == suffix then t = t:sub(1, -#suffix - 1) end
-                t = t:gsub("%s*\u{25B8}$", "")
+            if type(t) == "string" and (item.sub_item_table or item.sub_item_table_func) then
+                if t:sub(-SUB_SUFFIX_LEN) == SUB_SUFFIX then
+                    t = t:sub(1, -SUB_SUFFIX_LEN - 1)
+                else
+                    t = t:gsub("%s*\u{25B8}$", "")
+                end
             end
             return t
         end)
@@ -178,38 +182,65 @@ end
 -- Separators and footer
 -------------------------------------------------------------------------------
 
-local orig_menu_init = TouchMenu.init
-TouchMenu.init = function(self, ...)
-    orig_menu_init(self, ...)
-    local ok, err = pcall(function()
-        -- light line between every item; section separators a bit darker
-        local function line(color)
-            return HorizontalGroup:new{
-                HorizontalSpan:new{ width = S(10) },
-                LineWidget:new{ background = color,
-                    dimen = Geom:new{ w = self.item_width - 2 * S(10), h = self.split_height } },
-                HorizontalSpan:new{ width = S(10) },
-            }
-        end
-        self.split_span = line(Blitbuffer.COLOR_GRAY_E)
-        self.split_line = line(Blitbuffer.COLOR_GRAY_9)
+local function restyle(menu)
+    -- light line between every item; section separators a bit darker
+    local function line(color)
+        return HorizontalGroup:new{
+            HorizontalSpan:new{ width = S(10) },
+            LineWidget:new{ background = color,
+                dimen = Geom:new{ w = menu.item_width - 2 * S(10), h = menu.split_height } },
+            HorizontalSpan:new{ width = S(10) },
+        }
+    end
+    menu.split_span = line(Blitbuffer.COLOR_GRAY_E)
+    menu.split_line = line(Blitbuffer.COLOR_GRAY_9)
 
-        -- footer: "‹ Voltar" · page · clock/battery, same height as before
-        local fh = self.footer:getSize().h
-        local third = math.floor((self.width - self.padding * 2) / 3)
-        local back = InputContainer:new{
-            CenterContainer:new{ dimen = Geom:new{ w = S(130), h = fh },
-                TextWidget:new{ text = "‹  Voltar", face = Font:getFace("cfont", 16) } },
-        }
-        back.dimen = Geom:new{ x = 0, y = 0, w = S(130), h = fh }
-        back.ges_events = { TapBack = { GestureRange:new{ ges = "tap", range = function() return back.dimen end } } }
-        back.onTapBack = function() self:backToUpperMenu() return true end
-        self.footer = HorizontalGroup:new{
-            LeftContainer:new{ dimen = Geom:new{ w = third, h = fh }, back },
-            CenterContainer:new{ dimen = Geom:new{ w = third, h = fh }, self.page_info },
-            RightContainer:new{ dimen = Geom:new{ w = third, h = fh }, self.device_info },
-        }
-        self:updateItems()
+    -- footer: "‹ Voltar" · page · clock/battery, same height as before
+    local fh = menu.footer:getSize().h
+    local third = math.floor((menu.width - menu.padding * 2) / 3)
+    local back = InputContainer:new{
+        CenterContainer:new{ dimen = Geom:new{ w = S(130), h = fh },
+            TextWidget:new{ text = "‹  Voltar", face = Font:getFace("cfont", 16) } },
+    }
+    back.dimen = Geom:new{ x = 0, y = 0, w = S(130), h = fh }
+    back.ges_events = { TapBack = { GestureRange:new{ ges = "tap", range = function() return back.dimen end } } }
+    back.onTapBack = function() menu:backToUpperMenu() return true end
+    menu.footer = HorizontalGroup:new{
+        LeftContainer:new{ dimen = Geom:new{ w = third, h = fh }, back },
+        CenterContainer:new{ dimen = Geom:new{ w = third, h = fh }, menu.page_info },
+        RightContainer:new{ dimen = Geom:new{ w = third, h = fh }, menu.device_info },
+    }
+end
+
+-- TouchMenu.init builds the items once (via switchToTab -> updateItems) after
+-- creating the separators and footer. Swap them in right before that first
+-- build, so the menu is only built once when it opens.
+local orig_update = TouchMenu.updateItems
+TouchMenu.updateItems = function(self, ...)
+    if not self._kindle_styled then
+        self._kindle_styled = true
+        local ok, err = pcall(restyle, self)
+        if not ok then logger.warn("kindle-menu:", err) end
+    end
+    return orig_update(self, ...)
+end
+
+-------------------------------------------------------------------------------
+-- Build the file browser's menu ahead of time
+-------------------------------------------------------------------------------
+
+-- KOReader only builds the menu lists on the first tap, and again every time
+-- the file browser is recreated (after closing a book). Build them a moment
+-- after it appears, so tapping "Menu" opens right away.
+local FileManager = require("apps/filemanager/filemanager")
+local UIManager = require("ui/uimanager")
+local orig_fm_init = FileManager.init
+FileManager.init = function(self, ...)
+    orig_fm_init(self, ...)
+    UIManager:scheduleIn(2, function()
+        local fmm = self.menu
+        if FileManager.instance ~= self or self.tearing_down or not fmm or fmm.tab_item_table then return end
+        local ok, err = pcall(fmm.setUpdateItemTable, fmm)
+        if not ok then logger.warn("kindle-menu: prebuild", err) end
     end)
-    if not ok then logger.warn("kindle-menu:", err) end
 end
