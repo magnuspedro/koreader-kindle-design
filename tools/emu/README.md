@@ -5,7 +5,7 @@ Setup (once), from this folder:
     mkdir work && tar xf koreader-linux-arm64-*.tar.xz -C work && cp run.sh work/
     mkdir -p work/home/.config/koreader/patches work/books work/shots
     cp ../../patches/*.lua work/home/.config/koreader/patches/   # + a settings.reader.lua from the Kindle
-    cp some-book.epub work/books/livro.epub
+    cp *.epub work/books/                  # KOARG=/work/books/x.epub opens a book directly
     docker build -t koemu .
     docker run -d --name koemu -v "$PWD/work:/work" koemu /work/run.sh
 

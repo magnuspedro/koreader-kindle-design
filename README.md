@@ -1,7 +1,7 @@
 # KOReader com cara de Kindle
 
 Patches para o [KOReader](https://github.com/koreader/koreader) que trocam a interface de leitura de EPUB
-por uma mais simples, parecida com a do Kindle: barra no topo, barra de ferramentas,
+por uma mais simples, parecida com a do Kindle: tela inicial minimalista, barra no topo, barra de ferramentas,
 painel **Aa** com abas e um **Índice** limpo. Feito e testado num Kindle Basic 2024 com KOReader 2026.07.1.
 
 ![Leitura, barra de ferramentas, painel Aa e Índice](docs/screenshots/hero.png)
@@ -14,6 +14,7 @@ painel **Aa** com abas e um **Índice** limpo. Feito e testado num Kindle Basic 
 | Toque no topo | menu completo do KOReader + painel inferior | **barra de ferramentas**: Biblioteca · Índice · Fonte · Buscar · Marcar · Menu |
 | Toque embaixo | painel com 6 ícones e dezenas de opções | **painel Aa**: Temas · Fonte · Layout · Mais |
 | Índice | lista do KOReader | **tela cheia**, capítulo atual em destaque, toque para ir |
+| Tela inicial | mosaico de arquivos "KOReader / Home" | **Início minimalista**: relógio, livro atual e citação do dia + abas Biblioteca · Arquivos · Menu |
 
 Os menus completos do KOReader continuam a um toque: botão **Menu** na barra de ferramentas e
 **Mais › Todas as opções do KOReader** no painel Aa. PDFs continuam com a interface padrão.
@@ -35,6 +36,27 @@ como no Kindle.
   <img src="docs/screenshots/toolbar.png" width="32%" alt="Barra de ferramentas">
   <img src="docs/screenshots/read.png" width="32%" alt="Página de leitura">
 </p>
+
+## Tela inicial
+
+<p align="center">
+  <img src="docs/screenshots/home-minimal.png" width="32%" alt="Início minimalista">
+  <img src="docs/screenshots/home-biblioteca.png" width="32%" alt="Biblioteca em grade">
+  <img src="docs/screenshots/home-estilo.png" width="32%" alt="Escolha de estilo">
+</p>
+
+- **Início**: relógio (atualiza sozinho), o livro que você está lendo com progresso e tempo restante
+  (vem das estatísticas de leitura) e uma **citação do dia** tirada dos seus destaques.
+  Toque na capa para continuar lendo.
+- É rápida: o Início só lê o histórico de leitura; a pasta inteira só é varrida ao abrir **Biblioteca**.
+- **Biblioteca**: grade 3×2 com filtros Todos · Lendo · Não lidos · Lidos.
+- **Arquivos** abre o navegador do KOReader (o ícone de casa volta para o Início). **Menu** abre o menu completo.
+- **Segure o título "Início"** para trocar de estilo:
+
+![Estilos com módulos](docs/screenshots/home-estilos-modulos.png)
+![Estilos Kindle](docs/screenshots/home-estilos-kindle.png)
+
+*Imagens geradas no emulador com livros de domínio público e estatísticas de exemplo.*
 
 ## Gestos
 
@@ -111,6 +133,7 @@ Para desfazer, apague os patches e reinicie.
 |---|---|
 | `patches/2-kindle-header.lua` | barra do topo (reserva espaço na margem, relógio atualiza a cada minuto) |
 | `patches/2-kindle-ui.lua` | barra de ferramentas, painel Aa e Índice |
+| `patches/2-kindle-home.lua` | tela inicial (Início, Biblioteca, estilos) |
 | `settings/design-settings.lua` | minhas configurações de visual (fonte, margens, rodapé, protetor de tela) para referência |
 | `settings/gestures.lua` | minhas gestures (vai em `koreader/settings/gestures.lua`) |
 | `tools/gen_gestures.py` | gera os diagramas de gestures em `docs/gestures/` |
