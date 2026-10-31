@@ -34,6 +34,9 @@ local BLACK = Blitbuffer.COLOR_BLACK
 local GRAY = Blitbuffer.COLOR_GRAY_5
 local LIGHT = Blitbuffer.COLOR_LIGHT_GRAY
 
+-- Open/close the menu without the black e-ink flash.
+local NO_FLASH = true
+
 local LABELS = {
     ["appbar.navigation"] = "Navegar",
     ["appbar.typeset"] = "Documento",
@@ -221,8 +224,30 @@ TouchMenu.updateItems = function(self, ...)
         self._kindle_styled = true
         local ok, err = pcall(restyle, self)
         if not ok then logger.warn("kindle-menu:", err) end
+        -- open without the black flash (see NO_FLASH)
+        if NO_FLASH then self.is_fresh = false end
     end
     return orig_update(self, ...)
+end
+
+-------------------------------------------------------------------------------
+-- No black flash
+-------------------------------------------------------------------------------
+
+-- KOReader flashes the screen black when the menu opens and flashes the whole
+-- screen when it closes (against e-ink ghosting). Like the Kindle's own menus,
+-- refresh only the menu's area without flashing.
+local FileManager = require("apps/filemanager/filemanager")
+local UIManager = require("ui/uimanager")
+
+if NO_FLASH then
+    TouchMenu.onCloseWidget = function(self)
+        -- same guard as KOReader: nothing to refresh when FM/reader is going away
+        local fm, rd = FileManager.instance, require("apps/reader/readerui").instance
+        if (fm and not fm.tearing_down) or (rd and not rd.tearing_down) then
+            UIManager:setDirty(nil, "ui", self.dimen and self.dimen:copy())
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -232,8 +257,6 @@ end
 -- KOReader only builds the menu lists on the first tap, and again every time
 -- the file browser is recreated (after closing a book). Build them a moment
 -- after it appears, so tapping "Menu" opens right away.
-local FileManager = require("apps/filemanager/filemanager")
-local UIManager = require("ui/uimanager")
 local orig_fm_init = FileManager.init
 FileManager.init = function(self, ...)
     orig_fm_init(self, ...)

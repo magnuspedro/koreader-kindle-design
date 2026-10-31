@@ -84,6 +84,8 @@ mockups/                     esboços antigos
 - **Rapidez:** o visual (separadores, rodapé) entra no primeiro `updateItems`, então o menu é montado uma vez só
   ao abrir. As listas do menu do navegador são montadas 2 s depois dele abrir (`setUpdateItemTable`),
   para o primeiro toque em "Menu" ser rápido.
+- **Sem piscar:** `NO_FLASH = true` abre e fecha o menu com refresh `"ui"` só na área do menu (o KOReader
+  piscava ao abrir e piscava a tela inteira ao fechar). Se aparecer fantasma no e-ink, troque para `false`.
 
 ## Fluxo de trabalho
 
