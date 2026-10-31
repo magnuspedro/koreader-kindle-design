@@ -1246,6 +1246,14 @@ FileManager.onHome = function(self, ...)
     return r
 end
 
+-- "Exit" closes the file browser and KOReader quits once no window is left:
+-- close this screen too, or KOReader keeps running behind it (looks frozen).
+local orig_fm_close = FileManager.onClose
+FileManager.onClose = function(self, ...)
+    if FileManager._kindle_home then FileManager._kindle_home:close() end
+    return orig_fm_close(self, ...)
+end
+
 local orig_showingReader = FileManager.onShowingReader
 FileManager.onShowingReader = function(self, ...)
     if FileManager._kindle_home then FileManager._kindle_home:close() end
