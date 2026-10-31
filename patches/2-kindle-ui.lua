@@ -5,7 +5,7 @@ Kindle-style reading UI for EPUB/CRE books (PDFs keep KOReader's own UI).
 * Tap the bottom of the page, long-press the top bar, or "Aa" -> "Aa" panel
   with tabs Temas · Fonte · Layout · Mais. Changes apply right away and also
   become the default for books opened for the first time (like the Kindle).
-* "Índice" -> simple full-screen table of contents.
+* "Índice" (and every other way to open the TOC) -> simple full-screen table of contents.
 * "Menu" and "Mais > Todas as opções" still reach every KOReader setting.
 ]]
 
@@ -27,6 +27,7 @@ local Notification = require("ui/widget/notification")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local ReaderConfig = require("apps/reader/modules/readerconfig")
 local ReaderMenu = require("apps/reader/modules/readermenu")
+local ReaderToc = require("apps/reader/modules/readertoc")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
@@ -961,6 +962,15 @@ ReaderConfig.onShowConfigMenu = function(self)
     end }
     UIManager:show(self.aa_panel, "ui", self.aa_panel.sheet_dimen)
     self.ui:handleEvent(Event:new("HandledAsSwipe"))
+    return true
+end
+
+-- Every way of opening the table of contents (gestures, KOReader menu)
+-- shows the simple "Índice" page.
+local orig_showToc = ReaderToc.onShowToc
+ReaderToc.onShowToc = function(self, ...)
+    if not isCre(self.ui) then return orig_showToc(self, ...) end
+    UIManager:show(TocPage:new{ ui = self.ui }, "flashui")
     return true
 end
 

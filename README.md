@@ -38,19 +38,68 @@ como no Kindle.
 
 ## Gestos
 
-| Gesto | Ação |
+Os toques do topo e de baixo vêm dos patches. As outras gestures são as minhas configurações do plugin
+*Gestures* do KOReader ([`settings/gestures.lua`](settings/gestures.lua)) e funcionam junto com os patches.
+
+### Toques
+
+![Zonas de toque](docs/gestures/zonas.svg)
+
+### Deslizar e desenhar
+
+O ponto marca onde o dedo começa e a seta, onde termina. "Desenhos" são feitos com um dedo só, sem soltar.
+
+![Gestos de deslizar](docs/gestures/gestos.svg)
+
+### Lista completa (lendo um livro)
+
+| Gesture | Ação |
 |---|---|
-| Toque no topo / deslizar para baixo a partir do topo | barra de ferramentas |
-| Toque embaixo | painel Aa |
-| Segurar a barra do topo | painel Aa |
-| Toque fora do painel / deslizar o painel para baixo | fecha |
-| Deslizar para os lados no Índice ou na lista de fontes | troca de página |
+| Toque no topo | Barra de ferramentas |
+| Segurar a barra do topo | Painel Aa |
+| Toque embaixo · deslizar ↑ a partir de baixo | Painel Aa |
+| Deslizar ↓ a partir do topo | Barra de ferramentas |
+| Toque no canto superior direito | Marcar / desmarcar página |
+| Toque no canto superior esquerdo | Modo folhear |
+| Toque no canto inferior esquerdo | Luz liga/desliga |
+| Toque no lado esquerdo / direito | Página anterior / próxima |
+| 2 toques no lado esquerdo / direito | Volta / avança 10 páginas |
+| Deslizar ← / → | Próxima / anterior página |
+| Borda esquerda ↑ / ↓ | Mais / menos luz |
+| Diagonal curta | Atualizar tela (limpa fantasmas do e-ink) |
+| 2 dedos → | **Índice** |
+| 2 dedos ← | Marcadores |
+| 2 dedos ↑ / ↓ | Mais / menos luz |
+| Pinça / abrir | Fonte menor / maior |
+| ↑ → | **Índice** |
+| ↑ ← | Marcadores |
+| → ↑ | Histórico |
+| → ↓ | Ir para página |
+| → ← | Último marcador |
+| → ← → | Favoritos |
+| ← → | Voltar à posição anterior |
+| ← → ← | Abrir livro anterior |
+| ← ↑ | Status do livro |
+| ← ↓ | Voltar |
+| ↓ ↑ | Folhear |
+| ↑ ↓ ↑ | Capítulo anterior |
+| ↓ ↑ ↓ | Próximo capítulo |
+| ↓ ← | Ajuste de luz |
+| ↘ ↗ | Seguir o link mais próximo |
+| → ↓ ← ↑ | Atualizar tela |
+| ↖ ↙ ↖ | Wi-Fi liga/desliga |
+| ↘ ↗ ↖ / ↘ ↙ ↖ | Ligar / desligar Wi-Fi |
+| ↓ → · → ↑ ← · → ↑ ← → · ↓ → ↑ · ↓ → ↑ ↓ | Só em PDF: reflow e modos de zoom |
+
+Todo jeito de abrir o índice (botão **Índice**, gestures ou Menu › Table of contents) mostra o Índice simples.
+Dentro do Índice e da lista de fontes, deslize ← / → para trocar de página. Painéis fecham com toque fora ou deslizando ↓.
 
 ## Instalação
 
 1. Copie os arquivos de `patches/` para `koreader/patches/` no Kindle.
 2. (Opcional) Instale as fontes indicadas em [`fonts/README.md`](fonts/README.md) em `koreader/fonts/`.
-3. Reinicie o KOReader. Patches só são carregados quando ele abre.
+3. (Opcional) Para usar as mesmas gestures, copie `settings/gestures.lua` para `koreader/settings/` com o KOReader fechado.
+4. Reinicie o KOReader. Patches só são carregados quando ele abre.
 
 Para desfazer, apague os patches e reinicie.
 
@@ -63,6 +112,8 @@ Para desfazer, apague os patches e reinicie.
 | `patches/2-kindle-header.lua` | barra do topo (reserva espaço na margem, relógio atualiza a cada minuto) |
 | `patches/2-kindle-ui.lua` | barra de ferramentas, painel Aa e Índice |
 | `settings/design-settings.lua` | minhas configurações de visual (fonte, margens, rodapé, protetor de tela) para referência |
+| `settings/gestures.lua` | minhas gestures (vai em `koreader/settings/gestures.lua`) |
+| `tools/gen_gestures.py` | gera os diagramas de gestures em `docs/gestures/` |
 | `fonts/` | quais fontes uso e onde baixar |
 | `mockups/` | esboços feitos antes da implementação |
 | `tools/kmtp.c` | cliente MTP de sessão única para o Kindle no macOS (o Kindle desconecta após cada sessão do libmtp) |

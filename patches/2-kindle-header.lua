@@ -124,6 +124,8 @@ ReaderView.paintTo = function(self, bb, x, y)
     if barEnabled(self) then
         local ok, err = pcall(paintBar, self, bb, x, y)
         if not ok then require("logger").warn("kindle-header paint:", err) end
+        -- The bar wipes the top band: draw the bookmark dog-ear again on top.
+        if self.dogear_visible and self.dogear then self.dogear:paintTo(bb, x, y) end
     end
 end
 
