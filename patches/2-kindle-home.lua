@@ -2,7 +2,8 @@
 Kindle-style home screen, shown on top of KOReader's file manager.
 
 Styles (setting "kindle_home_style", or hold the title to choose):
-  "minimal" (default) - clock, book being read, quote of the day (only reads the history: fast)
+  "minimal_estante" (default) - clock, book being read, other books in progress
+  "minimal" - clock, book being read, quote of the day (both read only the history: fast)
   "painel" / "dados" / "estante" - module screens (clock, stats, reading goal, heatmap, cover shelf...)
   "inicio" - Kindle home: book being read in a big card, rows of recent and unread books
   "grade"  - library as a cover grid with filters (Todos / Lendo / Não lidos / Lidos)
@@ -50,7 +51,9 @@ local MID = Blitbuffer.COLOR_GRAY_9
 local LIGHT = Blitbuffer.COLOR_LIGHT_GRAY
 local PALE = Blitbuffer.COLOR_GRAY_E
 
-local function style() return G_reader_settings:readSetting("kindle_home_style") or "minimal" end
+local function style() return G_reader_settings:readSetting("kindle_home_style") or "minimal_estante" end
+-- Styles that only need the reading history (fast, no folder scan)
+local HISTORY_ONLY = { minimal = true, minimal_estante = true }
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -283,7 +286,7 @@ function Home:init()
 end
 
 function Home:reload()
-    if self.view == "inicio" and style() == "minimal" then
+    if self.view == "inicio" and HISTORY_ONLY[style()] then
         self.books = Library.recent()
     else
         self.books = Library.scan()
@@ -375,6 +378,7 @@ local Event = require("ui/event")
 local PRESETS = {
     painel  = { "clock_small", "current", "recent", "actions" },
     minimal = { "clock_big", "current_hero", "quote" },
+    minimal_estante = { "clock_mid", "current_hero_mid", "also_reading" },
     dados   = { "current", "goal", "stats", "heatmap" },
     estante = { "current", "deck", "quote" },
 }
@@ -539,11 +543,11 @@ function M.clock_small(self)
     return self.clock_spot
 end
 
-function M.clock_big(self)
+function M.clock_big(self, size, box)
     local now = os.date("*t")
     local date = string.format("%s, %d de %s", WEEKDAYS[now.wday], now.day, MONTHS[now.month])
-    self.clock_spot = Spot:new{ fixed(self.inner_w, S(100), VerticalGroup:new{ align = "center",
-        text(os.date("%H:%M"), 64, { font = "NotoSerif-Regular.ttf" }),
+    self.clock_spot = Spot:new{ fixed(self.inner_w, box or S(100), VerticalGroup:new{ align = "center",
+        text(os.date("%H:%M"), size or 64, { font = "NotoSerif-Regular.ttf" }),
         text(date, 17, { color = GRAY }),
     }) }
     return self.clock_spot
@@ -574,7 +578,7 @@ function M.current(self)
             function() self:open(b) end) }
 end
 
-function M.current_hero(self)
+function M.current_hero(self, cover_h)
     local b = self.current_book
     if not b then
         return VerticalGroup:new{ align = "center", vspan(S(60)),
@@ -586,7 +590,7 @@ function M.current_hero(self)
             vspan(S(60)) }
     end
     local d = Library.details(b)
-    local ch = S(215)
+    local ch = cover_h or S(215)
     local cw = math.floor(ch / 1.5)
     local meta = math.floor((b.percent or 0) * 100 + 0.5) .. "% lido"
     if d.left then meta = meta .. "  ·  " .. fmtDuration(d.left) .. " restantes" end
@@ -600,6 +604,32 @@ function M.current_hero(self)
         vspan(S(8)),
         text(meta, 14, { color = GRAY }),
     }, function() self:open(b) end)
+end
+
+function M.clock_mid(self) return M.clock_big(self, 50, S(80)) end
+function M.current_hero_mid(self) return M.current_hero(self, S(165)) end
+
+-- The other books in progress, as a row of small covers with their progress.
+function M.also_reading(self)
+    local list = {}
+    for _, b in ipairs(self.books) do
+        if b ~= self.current_book and b.status == "reading" then table.insert(list, b) end
+        if #list == 5 then break end
+    end
+    if #list == 0 then return nil end
+    local gap, h = S(16), S(118)
+    local w = math.floor(h / 1.5)
+    local hg = HorizontalGroup:new{ align = "top" }
+    for i, b in ipairs(list) do
+        if i > 1 then table.insert(hg, hspan(gap)) end
+        table.insert(hg, tap(VerticalGroup:new{ align = "left",
+            (cover(b, w, h)), vspan(S(6)),
+            progressBar(w, b.percent),
+            vspan(S(4)),
+            text(math.floor((b.percent or 0) * 100 + 0.5) .. "%", 12, { color = GRAY }),
+        }, function() self:open(b) end))
+    end
+    return VerticalGroup:new{ align = "left", label("Também lendo  ·  " .. #list), vspan(S(10)), hg }
 end
 
 local function coverRow(self, list, n, title)
@@ -1107,7 +1137,7 @@ function Home:onSwipeHome(_, ges)
     return true
 end
 local STYLES = {
-    { "minimal", "Minimalista" }, { "painel", "Painel" }, { "dados", "Dados" }, { "estante", "Estante" },
+    { "minimal_estante", "Minimalista + estante" }, { "minimal", "Minimalista" }, { "painel", "Painel" }, { "dados", "Dados" }, { "estante", "Estante" },
     { "inicio", "Início Kindle" }, { "grade", "Só biblioteca em grade" }, { "lista", "Só biblioteca em lista" },
 }
 
