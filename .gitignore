@@ -1,0 +1,9 @@
+.DS_Store
+# built binary (rebuild from tools/kmtp.c)
+tools/kmtp
+# emulator workspace (KOReader build, books, screenshots)
+tools/emu/work/
+*.tar.xz
+
+# fonts are not redistributed (see fonts/README.md)
+fonts/*.ttf
