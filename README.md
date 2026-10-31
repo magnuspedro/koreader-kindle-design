@@ -14,7 +14,8 @@ painel **Aa** com abas e um **Índice** limpo. Feito e testado num Kindle Basic 
 | Toque no topo | menu completo do KOReader + painel inferior | **barra de ferramentas**: Biblioteca · Índice · Fonte · Buscar · Marcar · Menu |
 | Toque embaixo | painel com 6 ícones e dezenas de opções | **painel Aa**: Temas · Fonte · Layout · Mais |
 | Índice | lista do KOReader | **tela cheia**, capítulo atual em destaque, toque para ir |
-| Tela inicial | mosaico de arquivos "KOReader / Home" | **Início minimalista**: relógio, livro atual e outros livros em andamento + abas Biblioteca · Arquivos · Menu |
+| Tela inicial | mosaico de arquivos "KOReader / Home" | **Início**: relógio, livro atual, outros livros em andamento e citação + abas Biblioteca · Arquivos · Menu |
+| Menu do KOReader | ícones sem nome, setas "▸" e "^" | abas com nome, separadores claros, "›" nos submenus e "‹ Voltar" |
 
 Os menus completos do KOReader continuam a um toque: botão **Menu** na barra de ferramentas e
 **Mais › Todas as opções do KOReader** no painel Aa. PDFs continuam com a interface padrão.
@@ -40,15 +41,14 @@ como no Kindle.
 ## Tela inicial
 
 <p align="center">
-  <img src="docs/screenshots/home-minimal-estante.png" width="32%" alt="Início minimalista com estante">
+  <img src="docs/screenshots/home-estante-relogio.png" width="32%" alt="Início: estante com relógio">
   <img src="docs/screenshots/home-biblioteca.png" width="32%" alt="Biblioteca em grade">
   <img src="docs/screenshots/home-estilo.png" width="32%" alt="Escolha de estilo">
 </p>
 
-- **Início** (estilo "Minimalista + estante"): relógio (atualiza sozinho), o livro que você está lendo com
-  progresso e tempo restante (vem das estatísticas de leitura) e, embaixo, **Também lendo**: os outros
-  livros em andamento. Toque numa capa para continuar lendo.
-- O estilo "Minimalista" troca a estante por uma **citação do dia** tirada dos seus destaques.
+- **Início** (estilo "Estante com relógio"): hora e data numa linha (atualiza sozinha), o livro que você
+  está lendo com progresso e tempo restante (vem das estatísticas de leitura), **Também lendo** com as capas
+  dos outros livros em andamento e a **citação do dia**, tirada dos seus destaques. Toque numa capa para ler.
 - É rápida: o Início só lê o histórico de leitura; a pasta inteira só é varrida ao abrir **Biblioteca**.
 - **Biblioteca**: grade 3×2 com filtros Todos · Lendo · Não lidos · Lidos.
 - **Arquivos** abre o navegador do KOReader (o ícone de casa volta para o Início). **Menu** abre o menu completo.
@@ -58,6 +58,18 @@ como no Kindle.
 ![Estilos Kindle](docs/screenshots/home-estilos-kindle.png)
 
 *Imagens geradas no emulador com livros de domínio público e estatísticas de exemplo.*
+
+## Menu do KOReader
+
+<p align="center">
+  <img src="docs/screenshots/menu-livro.png" width="40%" alt="Menu dentro do livro">
+  <img src="docs/screenshots/menu-inicio.png" width="40%" alt="Menu da tela inicial">
+</p>
+
+Mesmo menu e mesmas opções do KOReader, com o visual do resto: cada aba com nome (Navegar, Documento,
+Ajustes, Ferramentas, Buscar, Arquivos, Mais), aba aberta sublinhada, separadores claros, "›" nos itens
+que abrem submenu e "‹ Voltar" no rodapé. As imagens usam o KOReader em português
+(Menu › Ajustes › Idioma › Português do Brasil).
 
 ## Gestos
 
@@ -135,6 +147,7 @@ Para desfazer, apague os patches e reinicie.
 | `patches/2-kindle-header.lua` | barra do topo (reserva espaço na margem, relógio atualiza a cada minuto) |
 | `patches/2-kindle-ui.lua` | barra de ferramentas, painel Aa e Índice |
 | `patches/2-kindle-home.lua` | tela inicial (Início, Biblioteca, estilos) |
+| `patches/2-kindle-menu.lua` | visual do menu do KOReader |
 | `settings/design-settings.lua` | minhas configurações de visual (fonte, margens, rodapé, protetor de tela) para referência |
 | `settings/gestures.lua` | minhas gestures (vai em `koreader/settings/gestures.lua`) |
 | `tools/gen_gestures.py` | gera os diagramas de gestures em `docs/gestures/` |

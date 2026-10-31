@@ -51,9 +51,9 @@ local MID = Blitbuffer.COLOR_GRAY_9
 local LIGHT = Blitbuffer.COLOR_LIGHT_GRAY
 local PALE = Blitbuffer.COLOR_GRAY_E
 
-local function style() return G_reader_settings:readSetting("kindle_home_style") or "minimal_estante" end
+local function style() return G_reader_settings:readSetting("kindle_home_style") or "estante_relogio" end
 -- Styles that only need the reading history (fast, no folder scan)
-local HISTORY_ONLY = { minimal = true, minimal_estante = true }
+local HISTORY_ONLY = { minimal = true, minimal_estante = true, estante_relogio = true }
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -379,6 +379,7 @@ local PRESETS = {
     painel  = { "clock_small", "current", "recent", "actions" },
     minimal = { "clock_big", "current_hero", "quote" },
     minimal_estante = { "clock_mid", "current_hero_mid", "also_reading" },
+    estante_relogio = { "clock_line", "current", "reading_deck", "quote" },
     dados   = { "current", "goal", "stats", "heatmap" },
     estante = { "current", "deck", "quote" },
 }
@@ -449,7 +450,8 @@ function Stats.secondsPerPage(md5)
         local t, p
         if md5 then
             t, p = conn:rowexec(string.format(
-                "SELECT total_read_time, total_read_pages FROM book WHERE md5 = '%s'", md5:gsub("'", "")))
+                "SELECT total_read_time, total_read_pages FROM book WHERE md5 = '%s' ORDER BY last_open DESC LIMIT 1",
+                (md5:gsub("'", ""))))
         end
         if not (tonumber(t) and tonumber(p) and tonumber(p) > 0) then
             t, p = conn:rowexec("SELECT sum(total_read_time), sum(total_read_pages) FROM book")
@@ -470,12 +472,21 @@ function Library.details(b)
         d.finished_on = summary.modified
         d.annotations = ds:readSetting("annotations")
     end
-    if d.pages and b.percent and b.percent < 1 then
-        local spp = Stats.secondsPerPage(d.md5)
-        if spp then d.left = d.pages * (1 - b.percent) * spp end
-    end
     b._details = d
     return d
+end
+
+-- Reading time left (only computed for the books that show it).
+function Library.timeLeft(b)
+    local d = Library.details(b)
+    if d.left == nil then
+        d.left = false
+        if d.pages and b.percent and b.percent < 1 then
+            local spp = Stats.secondsPerPage(d.md5)
+            if spp then d.left = d.pages * (1 - b.percent) * spp end
+        end
+    end
+    return d.left or nil
 end
 
 -- Small widgets -------------------------------------------------------------------------
@@ -561,7 +572,8 @@ function M.current(self)
     local cw = math.floor(ch / 1.5)
     local col_w = self.inner_w - cw - S(20)
     local meta = math.floor((b.percent or 0) * 100 + 0.5) .. "%"
-    if d.left then meta = meta .. "  ·  " .. fmtDuration(d.left) .. " restantes" end
+    local left = Library.timeLeft(b)
+    if left then meta = meta .. "  ·  " .. fmtDuration(left) .. " restantes" end
     local info = VerticalGroup:new{ align = "left",
         textbox(b.title, 20, col_w, 2, { font = "NotoSerif-Bold.ttf" }),
         vspan(S(4)),
@@ -593,7 +605,8 @@ function M.current_hero(self, cover_h)
     local ch = cover_h or S(215)
     local cw = math.floor(ch / 1.5)
     local meta = math.floor((b.percent or 0) * 100 + 0.5) .. "% lido"
-    if d.left then meta = meta .. "  ·  " .. fmtDuration(d.left) .. " restantes" end
+    local left = Library.timeLeft(b)
+    if left then meta = meta .. "  ·  " .. fmtDuration(left) .. " restantes" end
     return tap(VerticalGroup:new{ align = "center",
         fixed(self.inner_w, ch, (cover(b, cw, ch))),
         vspan(S(14)),
@@ -604,6 +617,17 @@ function M.current_hero(self, cover_h)
         vspan(S(8)),
         text(meta, 14, { color = GRAY }),
     }, function() self:open(b) end)
+end
+
+-- One discreet line: "17:43 · sábado, 31 de outubro"
+function M.clock_line(self)
+    local now = os.date("*t")
+    local date = string.format("%s, %d de %s", WEEKDAYS[now.wday], now.day, MONTHS[now.month])
+    self.clock_spot = Spot:new{ fixed(self.inner_w, S(34), HorizontalGroup:new{ align = "center",
+        text(os.date("%H:%M"), 22, { bold = true }),
+        text("   ·   " .. date, 15, { color = GRAY }),
+    }, "left") }
+    return self.clock_spot
 end
 
 function M.clock_mid(self) return M.clock_big(self, 50, S(80)) end
@@ -695,6 +719,24 @@ function M.deck(self)
     step = math.min(step, cw + S(14))
     return VerticalGroup:new{ align = "left",
         label("Para ler a seguir  ·  " .. #list), vspan(S(10)),
+        Deck:new{ books = list, cw = cw, ch = ch, step = step, on_open = function(b) self:open(b) end },
+    }
+end
+
+-- Shelf of the other books in progress (history only, so it's fast).
+function M.reading_deck(self)
+    local list = {}
+    for _, b in ipairs(self.books) do
+        if b ~= self.current_book and b.status == "reading" then table.insert(list, b) end
+        if #list == 7 then break end
+    end
+    if #list == 0 then return nil end
+    local ch = S(190)
+    local cw = math.floor(ch / 1.5)
+    local step = #list > 1 and math.floor((self.inner_w - cw) / (#list - 1)) or cw
+    step = math.min(step, cw + S(14))
+    return VerticalGroup:new{ align = "left",
+        label("Também lendo  ·  " .. #list), vspan(S(10)),
         Deck:new{ books = list, cw = cw, ch = ch, step = step, on_open = function(b) self:open(b) end },
     }
 end
@@ -1137,7 +1179,7 @@ function Home:onSwipeHome(_, ges)
     return true
 end
 local STYLES = {
-    { "minimal_estante", "Minimalista + estante" }, { "minimal", "Minimalista" }, { "painel", "Painel" }, { "dados", "Dados" }, { "estante", "Estante" },
+    { "estante_relogio", "Estante com relógio" }, { "minimal_estante", "Minimalista + estante" }, { "minimal", "Minimalista" }, { "painel", "Painel" }, { "dados", "Dados" }, { "estante", "Estante" },
     { "inicio", "Início Kindle" }, { "grade", "Só biblioteca em grade" }, { "lista", "Só biblioteca em lista" },
 }
 
