@@ -37,17 +37,20 @@ def zones():
         X, Y, Wd, Hd = sx + x * sw, sy + y * sh, w * sw, h * sh
         b.append(f"<rect x='{X:.1f}' y='{Y:.1f}' width='{Wd:.1f}' height='{Hd:.1f}' fill='{fill}' "
                  f"stroke='{SOFT}' stroke-dasharray='4 3'/>")
+        if not n:
+            return
         cx, cy = X + Wd / 2, Y + Hd / 2
         b.append(f"<circle cx='{cx:.1f}' cy='{cy:.1f}' r='13' fill='{INK}'/>")
         b.append(text(cx, cy + 5, n, 14, weight="bold", color="white"))
 
-    zone(0, 1 / 8, 1 / 4, 6 / 8, "6", "#f4f4f4")      # back
-    zone(1 / 4, 1 / 8, 3 / 4, 6 / 8, "7", "#fbfbfb")  # forward
-    zone(1 / 8, 0, 6 / 8, 1 / 8, "1", "#e2e2e2")      # toolbar
-    zone(0, 0, 1 / 8, 1 / 8, "3", "#cfcfcf")          # page flipping
-    zone(7 / 8, 0, 1 / 8, 1 / 8, "2", "#cfcfcf")      # bookmark
-    zone(1 / 8, 7 / 8, 7 / 8, 1 / 8, "5", "#e2e2e2")  # Aa
-    zone(0, 7 / 8, 1 / 8, 1 / 8, "4", "#cfcfcf")      # light
+    zone(0, 1 / 8, 1 / 4, 13 / 16, "6", "#f4f4f4")      # back
+    zone(1 / 4, 1 / 8, 3 / 4, 13 / 16, "7", "#fbfbfb")  # forward
+    zone(1 / 8, 0, 6 / 8, 1 / 8, "1", "#e2e2e2")        # toolbar
+    zone(0, 0, 1 / 8, 1 / 8, "3", "#cfcfcf")            # page flipping
+    zone(7 / 8, 0, 1 / 8, 1 / 8, "2", "#cfcfcf")        # bookmark
+    # Aa: thin strip, half of KOReader's (2-kindle-ui.lua, AA_TAP_SCALE)
+    zone(1 / 8, 15 / 16, 7 / 8, 1 / 16, "5", "#e2e2e2")
+    zone(0, 7 / 8, 1 / 8, 1 / 8, "4", "#cfcfcf")        # light
 
     legend = [
         ("1", "Toque: barra de ferramentas", "Segurar a barra do topo: painel Aa"),

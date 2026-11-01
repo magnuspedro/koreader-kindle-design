@@ -974,6 +974,39 @@ ReaderToc.onShowToc = function(self, ...)
     return true
 end
 
+-- Bottom tap that opens "Aa": half of KOReader's height (kept on the bottom
+-- edge), so taps meant to turn the page open it less often. KOReader also
+-- makes it taller in the middle; the owner is left-handed and turns pages
+-- there, so the middle part is the same thin strip. Only the tap zones
+-- change; the swipe up from the bottom stays the same.
+local AA_TAP_SCALE = 0.5
+local orig_initGes = ReaderConfig.initGesListener
+ReaderConfig.initGesListener = function(self, ...)
+    orig_initGes(self, ...)
+    local doc = self.ui and self.ui.document
+    if not Device:isTouchDevice() or not doc or doc.koptinterface then return end
+    local function smaller(key)
+        local z = G_defaults:readSetting(key)
+        local h = z.h * AA_TAP_SCALE
+        return { ratio_x = z.x, ratio_y = z.y + z.h - h, ratio_w = z.w, ratio_h = h }
+    end
+    -- same ids and overrides as ReaderConfig: registering again replaces them
+    self.ui:registerTouchZones({
+        {
+            id = "readerconfigmenu_tap", ges = "tap",
+            screen_zone = smaller("DTAP_ZONE_CONFIG"),
+            overrides = { "tap_forward", "tap_backward" },
+            handler = function() return self:onTapShowConfigMenu() end,
+        },
+        {
+            id = "readerconfigmenu_ext_tap", ges = "tap",
+            screen_zone = smaller("DTAP_ZONE_CONFIG"), -- no taller middle part
+            overrides = { "readerconfigmenu_tap" },
+            handler = function() return self:onTapShowConfigMenu() end,
+        },
+    })
+end
+
 local orig_closeConfig = ReaderConfig.onCloseConfigMenu
 ReaderConfig.onCloseConfigMenu = function(self)
     if self.aa_panel then self.aa_panel:close() end

@@ -60,6 +60,10 @@ mockups/                     esboços antigos
   (viram padrão para livros novos, como no Kindle). Notificações silenciadas com `Notification:setNotifySource`.
 - Temas aplicam várias opções dentro de `BatchedUpdate`/`BatchedUpdateDone` (um re-render só).
 - **`ReaderToc.onShowToc`** → Índice simples em tela cheia (vale para gestures, botão e menu).
+- **Toque embaixo (zona 5, painel Aa):** só uma faixa fina, metade da altura do KOReader (`AA_TAP_SCALE = 0.5`,
+  presa na borda de baixo), sem a parte mais alta no meio (`readerconfigmenu_ext_tap` = mesma faixa): o dono é
+  canhoto e vira página tocando embaixo, no meio. Re-registra as duas zonas depois de
+  `ReaderConfig.initGesListener`. O deslizar ↑ a partir de baixo não muda. Diagrama em `tools/gen_gestures.py`.
 - Só age em documentos crengine (`isCre`); PDF usa a interface nativa.
 
 ### 2-kindle-home.lua — tela inicial
